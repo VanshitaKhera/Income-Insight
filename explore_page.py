@@ -1,6 +1,8 @@
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
+import plotly.express as px
+import plotly.graph_objects as go
 
 
 def shorten_categories(categories, cutoff):
@@ -59,23 +61,39 @@ df = load_data()
 
 
 def show_explore_page():
-    st.title("Explore Software Developers' Salaries")
+    st.title("Explore Software Developer's Data")
 
     st.write(
-        """
-        ### Stack Overflow Developer Survey
-        """
+        """ ### Stack Overflow Developer Survey """
     )
 
-    data = df["Country"].value_counts()
+    data = df["Country"].value_counts().reset_index()
+    data.columns = ['Country', 'Count']
 
-    fig, ax = plt.subplots()
-    data.plot(kind="bar", ax=ax, color=plt.get_cmap("tab20").colors)
-    ax.set_xlabel("Country")
-    ax.set_ylabel("Number of Developers")
-    ax.set_title("Number of Data from Different Countries")
+    # Pie chart with Plotly
+    fig1 = px.pie(data, names='Country', values='Count', title='Number of Data from Different Countries',
+                  color_discrete_sequence=px.colors.sequential.RdBu, hole=0.3)
+    
+    fig1.update_traces(textinfo='percent+label')
+    fig1.update_layout(template='plotly_dark')
 
-    st.write("#### Number of Data from Different Countries")
-    st.pyplot(fig)
+    st.plotly_chart(fig1)
 
+    # Experience vs Salary interactive scatter plot with animation
+    df_sorted = df.sort_values(by='YearsCodePro')
+    fig2 = px.scatter(df_sorted, x='YearsCodePro', y='Salary', color='Country',
+                      title='Years of Experience vs. Salary',
+                      labels={'YearsCodePro': 'Years of Experience', 'Salary': 'Salary'},
+                      animation_frame='YearsCodePro', hover_data=['EdLevel'])
 
+    fig2.update_layout(template='plotly_dark')
+
+    st.plotly_chart(fig2)
+
+    # Salary distribution by Education Level
+    fig3 = px.box(df, x='EdLevel', y='Salary', color='EdLevel', title='Salary Distribution by Education Level',
+                  labels={'EdLevel': 'Education Level', 'Salary': 'Salary'})
+
+    fig3.update_layout(template='plotly_dark')
+
+    st.plotly_chart(fig3)
